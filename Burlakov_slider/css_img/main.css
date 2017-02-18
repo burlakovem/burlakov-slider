@@ -1,0 +1,111 @@
+.byres_slider ul,
+.byres_slider l{
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+	list-style: none;
+}
+.bures_slider{
+	
+}
+
+/*
+  ========================================
+  Сетка
+  ========================================
+*/
+*,
+*:before,
+*:after{
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+/*
+  ========================================
+  Слайдер
+  ========================================
+*/
+.byres_slider_slide{
+	position:absolute;
+	display:block;
+	width:100%;
+	height:100%;
+	transition:0.45s;/*Скорость движения слайда*/
+}
+.byres_slider{
+	width:100%;
+	height:300px;
+	position:relative;
+	overflow:hidden;
+	display:inline-block;
+}
+/*
+  ========================================
+  btns
+  ========================================
+*/
+.byres_slider_btn-left,
+.byres_slider_btn-right{
+	width:30px;
+	height:100px;
+	position:absolute;
+	background:url('img/r_btn_1.png');
+	background-size:70% 70%;
+	background-position:center;
+	background-repeat:no-repeat;
+	right:0;
+	top:100px;
+	z-index:1000;
+	cursor:pointer;
+	background-color:rgba(0,0,0,0.9);
+	opacity:0.6;
+	transition:0.3s;
+}
+.byres_slider_btn-left{
+	transform: rotate(180deg);
+	left:0;
+}
+.byres_slider_btn-left:hover,
+.byres_slider_btn-right:hover{
+	opacity:0.9;
+}
+
+/*
+  ========================================
+  dots
+  ========================================
+*/
+
+.burlakovSlider__dots_container{
+	list-style-type:none;
+	display:inline-block;
+	top:220px;
+	position:absolute;
+	left:50%;
+}
+.burlakovSlider-dots{
+	width:24px;
+	height:24px;
+	border-radius:24px; /*Если закомментить, то будут квадратики*/
+	position:relative;
+	display:inline-block;
+	border:5px solid #333;
+	margin:1.5px;
+	float:left;
+	cursor:pointer;
+}
+.burlakovSlider-dots-true:after{
+	display:inline-block;
+	position:absolute;
+	width:14px;
+	height:14px;
+	content:'';
+	border-radius:14px; /*Если закомментить, то будут квадратики*/
+	background: #333;
+	border:2.5px solid white;
+}
+

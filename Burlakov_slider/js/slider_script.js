@@ -1,8 +1,15 @@
 var
 slide_count=document.querySelectorAll('div.byres_slider div').length; //Количество слайдов
 slide_true=0;//Текущий слайд
+slide_hover=false;
+slide_click=false;
+mause_positionX=0;
+mause_positionX_start=0;
+mause_positionX_end=0;
+moveMouseX=0;
 print='';
 vspomogatel=0;
+slider_conteiner=document.querySelector('.byres_slider');
 //Кнопка первого слайда
 dots='<li><a class="burlakovSlider-dots burlakovSlider-dots-true" id="burlakovSlide-dots-0" onclick="dotsChecked(0); return false;"></a></li>';
 //Вспомогательный слайд (копия первого)
@@ -29,8 +36,9 @@ for(var i=0; i<slide_count+1; i++){
 	}
 };
 
-document.querySelector('.byres_slider').innerHTML+=print;
-document.querySelector('.byres_slider').appendChild(dots_container);
+//Добавляем кнопки влево и вправо
+slider_conteiner.innerHTML+=print;
+slider_conteiner.appendChild(dots_container);
 dots_container.innerHTML+=dots;
 
 //Это даст интересный вид кнопок (на любителя)
@@ -38,25 +46,30 @@ for(var i=0; i<slide_count; i+=2){
 	document.getElementById('burlakovSlide-dots-'+i).style.cssText='margin-top:15px';
 }
 
-print=document.querySelector('div.byres_slider').innerHTML;
+//Запоминаем текущий вид slider_conteiner
+print=slider_conteiner.innerHTML;
 
+/*
 //Делаем иллюзию бесконечного слайда
 slider_return= function(){
-	for(var i=0; i<slide_count+1; i++){
-		document.getElementById('bs_slide-' + i).style.cssText='left:' + ( i-slide_true) * 100 + '%;  transition:none;';
-	}
+	moovedSlide('transition:none;');
 	slide_true+=vspomogatel;
 	setTimeout(anim_btn,1);
+};
+*/
+
+//Движение слайдов
+moovedSlide=function(cssTransition,slide_true){
+	for(var i=0; i<slide_count+1; i++){
+		document.getElementById('bs_slide-' + i).style.cssText='left:' + ( i-slide_true) * 100 + '%; '+'margin-left:'+moveMouseX+'px; '+cssTransition;
+	}
 };
 
 //Анимационная смена слайда
 anim_btn= function(){	
 	clearTimeout(autoSwitch);
-	for(var i=0; i<slide_count+1; i++){
-		document.getElementById('bs_slide-' + i).style.cssText='left:' + ( i-slide_true) * 100 + '%;';
-	}
-	//Автоматизация смены слайда
-	autoSwitch=setTimeout(slider_btnRight,2700);
+	moveMouseX=0;
+	moovedSlide('',slide_true);
 	
 	//Удаляем класс текущей выбранной кнопки
 	document.querySelector('.burlakovSlider-dots-true').classList.add('burlakovSlider-dots-false');
@@ -70,19 +83,72 @@ anim_btn= function(){
 		document.getElementById('burlakovSlide-dots-0').classList.add("burlakovSlider-dots-true");
 		document.getElementById('burlakovSlide-dots-0').classList.remove("burlakovSlider-dots-false");
 	}
+	
+	//Автоматизация смены слайда при наведении мыши слайдер останавливается
+	if(!slide_hover && !slide_click){
+		autoSwitch=setTimeout(slider_btnRight,4200);
+	}
 };	
 //Автоматизация смены слайда
 autoSwitch=setTimeout(anim_btn,1);
 
+//Возобновление и остановка анимации при наведение мыши
+slider_conteiner.addEventListener('mouseover',function(){slide_hover=true; clearTimeout(autoSwitch);});
+slider_conteiner.addEventListener('mouseout',function(){slide_hover=false; if(!slide_click){autoSwitch=setTimeout(slider_btnRight,4200);}});
+
+//Остановка анимации при клике мыши
+slider_conteiner.addEventListener('mousedown',function(event){
+	if(event.which==1){
+		clearTimeout(autoSwitch);
+		//console.log('yes'); 
+		slide_click=true;
+		mause_positionX_start=event.pageX;
+		event.preventDefault();
+	}
+});
+
+//Возобновление анимации при клике мыши==false
+document.addEventListener('mouseup',function(event){
+	if(event.which==1){
+		//console.log('no');
+		slide_click=false;
+		mause_positionX_end=event.pageX;
+		if(mause_positionX_start>mause_positionX_end && 100<Math.abs(mause_positionX_start-mause_positionX_end)){
+			setTimeout(slider_btnRight,1);
+		}else if(mause_positionX_start<mause_positionX_end && 100<Math.abs(mause_positionX_start-mause_positionX_end)){
+			setTimeout(slider_btnLeft,1);
+		}else{
+			setTimeout(anim_btn,1);
+		}
+	}
+});
+
+document.addEventListener('mousemove',function(event){
+	if(slide_click){
+		mause_positionX=event.pageX;
+		moveMouseX=mause_positionX-mause_positionX_start;
+		if(mause_positionX>mause_positionX_start && slide_true==0){
+			moovedSlide('transition:none;',slide_count);
+		}else if(mause_positionX<mause_positionX_start && slide_true==slide_count){
+			moovedSlide('transition:none;',0);
+		}else{
+			moovedSlide('transition:none;',slide_true);
+		}
+		//console.log(mause_positionX);
+		event.preventDefault();
+	}
+});
+
 //Кнопка вправо
-slider_btnRight=function(){
+slider_btnRight=function(){	
 	if(slide_true<slide_count){	
 		slide_true+=1;
 		setTimeout(anim_btn,1);
 	}else{
 		slide_true=0;
-		vspomogatel=1;
-		return slider_return();
+		moovedSlide('transition:none;',slide_true);
+		slide_true=1;
+		setTimeout(anim_btn,1);
 	}
 };
 
@@ -93,8 +159,9 @@ slider_btnLeft=function(){
 		setTimeout(anim_btn,1);
 	}else{
 		slide_true=slide_count;
-		vspomogatel=-1;
-		return slider_return();
+		moovedSlide('transition:none;',slide_true);
+		slide_true-=1;
+		setTimeout(anim_btn,1);
 	}
 };
 
@@ -108,4 +175,4 @@ function dotsChecked(сheck){
 		slide_true=сheck-1;
 		return slider_btnRight();
 	}
-}
+};

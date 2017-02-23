@@ -9,12 +9,15 @@ mause_positionX_end=0;
 moveMouseX=0;
 print='';
 vspomogatel=0;
+slider_content=document.createElement('div');
+slider_content.classList.add('slider_content');
 slider_conteiner=document.querySelector('.byres_slider');
 //Кнопка первого слайда
 dots='<li><a class="burlakovSlider-dots burlakovSlider-dots-true" id="burlakovSlide-dots-0" onclick="dotsChecked(0); return false;"></a></li>';
 //Вспомогательный слайд (копия первого)
 div_end=document.querySelectorAll('div.byres_slider div')[0].cloneNode(1);
 document.querySelector('.byres_slider').appendChild(div_end);
+document.querySelector('.byres_slider').appendChild(slider_content);
 dots_container=document.createElement('ul');
 //Контейнер с дотс кнопками
 dots_container.style.cssText='width:'+28*slide_count+'px; margin-left:'+(-28*slide_count/2)+'px;';
@@ -26,13 +29,15 @@ print+='<a class="byres_slider_btn-left" onclick="slider_btnLeft(); return false
 print+='<a class="byres_slider_btn-right" onclick="slider_btnRight(); return false;"></a>';
 print+='</div>';
 
-//Стилизуем слайды и дотс кнопки
+//Стилизуем слайды и кнопки
 for(var i=0; i<slide_count+1; i++){
-	document.querySelectorAll('div.byres_slider div')[i].classList.add("byres_slider_slide");
-	document.querySelectorAll('div.byres_slider div')[i].id='bs_slide-' + i;
+	document.querySelectorAll('div.byres_slider div')[0].classList.add("byres_slider_slide");
+	document.querySelectorAll('div.byres_slider div')[0].id='bs_slide-' + i;
 	document.getElementById('bs_slide-' + i).style.cssText='left:' + i * 100 + '%;';
+	(slider_content.appendChild(document.getElementById('bs_slide-' + i)));
+	//document.getElementById('bs_slide-' + i).addEventListener('touchstart',function(event){eventDown(event);});
 	if(i!=slide_count && i!=0){
-		dots+='<li><a class="burlakovSlider-dots burlakovSlider-dots-false" id="burlakovSlide-dots-'+i+'"  onclick="dotsChecked('+i+'); return false;"></a></li>';
+		dots+='<li><li><a class="burlakovSlider-dots burlakovSlider-dots-false" id="burlakovSlide-dots-'+i+'"  onclick="dotsChecked('+i+'); return false;"></a></li>';
 	}
 };
 
@@ -93,20 +98,21 @@ anim_btn= function(){
 autoSwitch=setTimeout(anim_btn,1);
 
 //Возобновление и остановка анимации при наведение мыши
-slider_conteiner.addEventListener('mouseover',function(){slide_hover=true; clearTimeout(autoSwitch);});
-slider_conteiner.addEventListener('mouseout',function(){slide_hover=false; if(!slide_click){autoSwitch=setTimeout(slider_btnRight,4200);}});
+slider_content.addEventListener('mouseover',function(){slide_hover=true; clearTimeout(autoSwitch);});
+slider_content.addEventListener('mouseout',function(){slide_hover=false; if(!slide_click){autoSwitch=setTimeout(slider_btnRight,4200);}});
 
 //Остановка анимации при клике мыши
-slider_conteiner.addEventListener('mousedown',function(event){eventDown(event);});
-slider_conteiner.addEventListener('touchstart',function(event){eventDown(event);});
+slider_content.addEventListener('mousedown',function(event){eventDown(event);});
+slider_content.addEventListener('touchstart',function(event){eventDown(event);});
 eventDown=function(event){
 	if(event.which==1 || event.targetTouches!=undefined){
 		clearTimeout(autoSwitch);
 		//console.log('yes'); 
 		slide_click=true;
 		mause_positionX_start=event.pageX || event.changedTouches[0].pageX;
+		event.preventDefault();
 	}
-};
+}
 
 //Возобновление анимации при клике мыши==false
 document.addEventListener('mouseup',function(event){eventUp(event,150);});
@@ -125,10 +131,10 @@ eventUp=function(event,pxLeaght){
 			setTimeout(anim_btn,20);
 		}
 	}
-};
+}
 
 //Поведение слайдов, когда курсор двигается
-document.addEventListener('mousemove',function(event){eventMove(event); event.preventDefault();});
+document.addEventListener('mousemove',function(event){eventMove(event)});
 document.addEventListener('touchmove',function(event){eventMove(event)});
 eventMove=function(event){
 	if(slide_click && slide_hover || slide_click && event.changedTouches!=undefined){
@@ -136,23 +142,24 @@ eventMove=function(event){
 		moveMouseX=mause_positionX-mause_positionX_start;
 		setTimeout(mouseMove,1,mause_positionX);//поведение слайдов при движении зажатой мышки
 		//console.log(mause_positionX);
+		event.preventDefault();
 	}else if(slide_click && !slide_hover || slide_click && event.changedTouches==undefined){
 		eventUp(event,50)
 	}
-};
+}
 
 //поведение слайдов при отпускании или движении мышки
 mouseMove=function(mause_positionX_end){
 	if(slide_true==0 && mause_positionX_end>mause_positionX_start){
 		slide_true=(!slide_click)?slide_count:slide_true;
-		setTimeout(moovedSlide,1,'transition:none; cursor:grabbing; cursor:-webkit-grabbing;',slide_count);
+		setTimeout(moovedSlide,1,'transition:none;',slide_count);
 	}else if(slide_true==slide_count && mause_positionX_end<mause_positionX_start){
 		slide_true=(!slide_click)?0:slide_true;
-		setTimeout(moovedSlide,1,'transition:none; cursor:grabbing; cursor:-webkit-grabbing;',0);
+		setTimeout(moovedSlide,1,'transition:none;',0);
 	}else{
-		if(slide_click){moovedSlide('transition:none; cursor:grabbing; cursor:-webkit-grabbing;',slide_true);}
+		if(slide_click){moovedSlide('transition:none;',slide_true);}
 	}
-};
+}
 
 //Кнопка вправо
 slider_btnRight=function(){	

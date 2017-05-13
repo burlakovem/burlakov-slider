@@ -1,5 +1,7 @@
+.new_slider ul,
+.new_slider li,
 .byres_slider ul,
-.byres_slider l{
+.byres_slider li{
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -29,6 +31,10 @@
   Слайдер
   ========================================
 */
+.byres_cursor_grab{
+	cursor: -webkit-grab;
+	cursor:grab;
+}
 .byres_slider_slide{
 	position:absolute;
 	display:block;
@@ -36,9 +42,9 @@
 	height:100%;
 	transition:0.45s;/*Скорость движения слайда*/
 	overflow:hidden;
-	cursor: -webkit-grab;
-	cursor:grab;
+	
 }
+.new_slider,
 .byres_slider{
 	width:100%;
 	height:300px;

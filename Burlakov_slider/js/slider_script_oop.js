@@ -12,6 +12,9 @@ function initBurlakovSlider(burlakov_sc){
 	this_.hoverStop=true;		//Остановка при наведении
 	this_.btnLRenable=true;		//Показать кнопки влево/вправо
 	this_.slide_true=0;			//Текущий слайд
+	this_.resizeHeight=false;	//Изменение высоты
+	this_.attachBtns=[];		//Можно задать другие кнопки
+	this_.attachSlide=[];		//Прикрепить к слайду ещё слайд
 	
 	var	slider_conteiner=document.querySelector('.'+burlakov_sc);
 	var	slide_count=slider_conteiner.children.length; //Количество слайдов
@@ -89,10 +92,17 @@ function initBurlakovSlider(burlakov_sc){
 			}
 		}
 	}
+	//ресайзинг высоты
+	function resizeHeightFun(){
+		if(this_.resizeHeight){
+			slider_conteiner.style.height=slider_conteiner.children[this_.slide_true].clientHeight;
+		}
+	}
 	//Ресайз окна браузера
 	function resaizeWindow(){
 		procentWidth=document.getElementsByClassName(burlakov_sc)[0].parentNode.offsetWidth/100;
 		//console.log(procentWidth);
+		resizeHeightFun();
 	}
 	this_.run=function(){
 		var block_btns=false;
@@ -187,8 +197,8 @@ function initBurlakovSlider(burlakov_sc){
 		};
 
 		//Возобновление анимации при клике мыши==false
-		document.addEventListener('mouseup',function(event){eventUp(event,150);});
-		document.addEventListener('touchend',function(event){eventUp(event,50);});
+		slider_conteiner.addEventListener('mouseup',function(event){eventUp(event,150);});
+		slider_conteiner.addEventListener('touchend',function(event){eventUp(event,50);});
 		var eventUp=function(event,pxLeaght){
 			if(slide_click){
 				//console.log('no');
@@ -206,8 +216,8 @@ function initBurlakovSlider(burlakov_sc){
 		};
 
 		//Поведение слайдов, когда курсор двигается
-		document.addEventListener('mousemove',function(event){eventMove(event); event.preventDefault();});
-		document.addEventListener('touchmove',function(event){eventMove(event)});
+		slider_conteiner.addEventListener('mousemove',function(event){eventMove(event); event.preventDefault();});
+		slider_conteiner.addEventListener('touchmove',function(event){eventMove(event)});
 		var eventMove=function(event){
 			if(slide_click && slide_hover || slide_click && event.changedTouches!=undefined){
 				mause_positionX=event.pageX || event.changedTouches[0].pageX;
@@ -270,6 +280,7 @@ function initBurlakovSlider(burlakov_sc){
 				return setTimeout(slider_btnRight,1);
 			}
 		};
+		resizeHeightFun();
 	}
 	this_.runFabe=function(){
 		var thisFabe=this;
@@ -294,8 +305,10 @@ function initBurlakovSlider(burlakov_sc){
 			}
 			add_slide.id=burlakov_sc+'_slide-' + i;
 			if(i==this_.slide_true){
+				if(this_.attachSlide[i]!=undefined){this_.attachSlide[i].style.cssText='transition:'+this_.transition+'s; opacity:1;';}
 				add_slide.style.cssText='transition:'+this_.transition+'s; opacity:1;';
 			}else{
+				if(this_.attachSlide[i]!=undefined){this_.attachSlide[i].style.cssText='transition:'+this_.transition+'s; opacity:0; display:none;';}
 				add_slide.style.cssText='transition:'+this_.transition+'s; opacity:0; display:none;';
 			}
 			setTimeout(function(dot_a,i){				
@@ -320,19 +333,29 @@ function initBurlakovSlider(burlakov_sc){
 			this_.slide_true=new_slide;
 			
 			if(Math.abs(moveMouseX)<30){
-				document.getElementById(burlakov_sc+'_slide-' + new_slide).style.cssText='transition:'+this_.transition+'s; opacity:0;';
+				var cssText='transition:'+this_.transition+'s; opacity:0;';
+				if(this_.attachSlide[new_slide]!=undefined){this_.attachSlide[new_slide].style.cssText=cssText;}
+				document.getElementById(burlakov_sc+'_slide-' + new_slide).style.cssText=cssText;
 			}
-			document.getElementById(burlakov_sc+'_slide-' + this_slide_true).style.cssText='transition:'+this_.transition+'s; opacity:0;';
+			var cssText='transition:'+this_.transition+'s; opacity:0;';
+			if(this_.attachSlide[this_slide_true]!=undefined){this_.attachSlide[this_slide_true].style.cssText=cssText;}
+			document.getElementById(burlakov_sc+'_slide-' + this_slide_true).style.cssText=cssText;
 			
 			//console.log(slide_true);
 			moveMouseX=0;
-			setTimeout(function(){document.getElementById(burlakov_sc+'_slide-' + new_slide).style.cssText='transition:'+this_.transition+'s; opacity:1;';},20);
+			
+			setTimeout(function(){
+				var cssText='transition:'+this_.transition+'s; opacity:1;';
+				if(this_.attachSlide[new_slide]!=undefined){this_.attachSlide[new_slide].style.cssText=cssText;}
+				document.getElementById(burlakov_sc+'_slide-' + new_slide).style.cssText=cssText;
+			},20);
 			setTimeout(clearOpacity,1,this_slide_true);
 			//setTimeout(function(){document.getElementById(burlakov_sc+'_slide-' + this_slide_true).style.cssText='display:none;';},this_.transition*1000);
 			thisFabe.animSlideOut_2=setTimeout(function(){
+				if(this_.attachSlide[this_slide_true]!=undefined){this_.attachSlide[this_slide_true].style.cssText='display:none;';	}
 				document.getElementById(burlakov_sc+'_slide-' + this_slide_true).style.cssText='display:none;';						
 				if(this_.autoPlay && !slide_hover && !slide_click){
-					var animSlideOut=setTimeout((!this_.reverse)?slider_btnRight:slider_btnLeft,this_.slideTimeOut);
+					animSlideOut=setTimeout((!this_.reverse)?slider_btnRight:slider_btnLeft,this_.slideTimeOut);
 				}
 				
 			},this_.transition*1000);
@@ -344,32 +367,25 @@ function initBurlakovSlider(burlakov_sc){
 		//Это даст интересный вид кнопок (на любителя)
 		slilizeDots();
 		slider_conteiner.appendChild(dots_container);
-		if(this_.btnLRenable){
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-left').addEventListener('click',function(){
-				//clearTimeout(thisFabe.eventDownOut);		
+		var attachLeftBtn= function (){	
 				if(block_btns) return;
-				stopAnim();
 				setTimeout(slider_btnLeft,1);
 				return false;
-			});
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-right').addEventListener('click',function(){
-				//clearTimeout(thisFabe.eventDownOut);
-				if(block_btns) return;
-				stopAnim();
-				setTimeout(slider_btnRight,1);
-				return false;
-			});
-			/*
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-left').addEventListener('mouseDown',function(){clearTimeout(thisFabe.eventDownOut);});
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-left').addEventListener('touchstart',function(){clearTimeout(thisFabe.eventDownOut);});
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-left').addEventListener('mouseUp',function(){clearTimeout(thisFabe.eventDownOut);});
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-left').addEventListener('touchend',function(){clearTimeout(thisFabe.eventDownOut);});
-			
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-right').addEventListener('mouseDown',function(){clearTimeout(thisFabe.eventDownOut);});
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-right').addEventListener('touchstart',function(){clearTimeout(thisFabe.eventDownOut);});
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-right').addEventListener('mouseUp',function(){clearTimeout(thisFabe.eventDownOut);});
-			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-right').addEventListener('touchend',function(){clearTimeout(thisFabe.eventDownOut);});
-			*/
+		}
+		var attachRightBtn= function (){	
+			if(block_btns) return;
+			setTimeout(slider_btnRight,1);
+			return false;		
+		}
+		if(this_.btnLRenable){
+			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-left').addEventListener('click',attachLeftBtn);
+			document.querySelector('.'+burlakov_sc+' .byres_slider_btn-right').addEventListener('click',attachRightBtn);
+		}
+		if(this_.attachBtns[0]!=undefined){
+			this_.attachBtns[0].addEventListener('click',attachLeftBtn);
+		}
+		if(this_.attachBtns[1]!=undefined){
+			this_.attachBtns[1].addEventListener('click',attachRightBtn);
 		}
 			
 		var slider_btnRight=function(){		
@@ -415,8 +431,8 @@ function initBurlakovSlider(burlakov_sc){
 			}
 		};
 		//Остановка анимации при клике мыши
-		slider_conteiner.addEventListener('mousedown',function(event){if(this_.mouseDown){eventDown(event);}});
-		slider_conteiner.addEventListener('touchstart',function(event){if(this_.touch){eventDown(event);}});
+		slider_conteiner.addEventListener('mousedown',function(event){if(this_.mouseDown && !block_touchs){eventDown(event);}});
+		slider_conteiner.addEventListener('touchstart',function(event){if(this_.touch && !block_touchs){eventDown(event);}});
 		var eventDown=function(event){
 			
 				if(event.which==1 || event.targetTouches!=undefined){
@@ -428,8 +444,8 @@ function initBurlakovSlider(burlakov_sc){
 			
 		};
 		//Поведение слайдов, когда курсор двигается
-		document.addEventListener('mousemove',function(event){eventMove(event); event.preventDefault();});
-		document.addEventListener('touchmove',function(event){eventMove(event)});
+		slider_conteiner.addEventListener('mousemove',function(event){eventMove(event); event.preventDefault();});
+		slider_conteiner.addEventListener('touchmove',function(event){eventMove(event)});
 		var eventMove=function(event){
 			if(slide_click && slide_hover || slide_click && event.changedTouches!=undefined){
 				mause_positionX=event.pageX || event.changedTouches[0].pageX;
@@ -443,16 +459,18 @@ function initBurlakovSlider(burlakov_sc){
 		
 		
 		//Возобновление и остановка анимации при наведение мыши
-		slider_conteiner.addEventListener('mouseover',function(){if(this_.hoverStop){slide_hover=true; stopAnim();}});
-		slider_conteiner.addEventListener('mouseout',function(event){
-			slide_hover=false; 
-			if(!slide_click && this_.autoPlay){
-				animSlideOut=setTimeout((!this_.reverse)?slider_btnRight:slider_btnLeft,this_.slideTimeOut);
-			}
-		});
+		if(this_.hoverStop){
+			slider_conteiner.addEventListener('mouseover',function(){slide_hover=true; stopAnim();});
+			slider_conteiner.addEventListener('mouseout',function(event){
+				slide_hover=false; 
+				if(!slide_click && this_.autoPlay){
+					animSlideOut=setTimeout((!this_.reverse)?slider_btnRight:slider_btnLeft,this_.slideTimeOut);
+				}
+			});
+		}
 		//Возобновление анимации при клике мыши==false
-		document.addEventListener('mouseup',function(event){eventUp(event,150);});
-		document.addEventListener('touchend',function(event){eventUp(event,50);});
+		slider_conteiner.addEventListener('mouseup',function(event){eventUp(event,150);});
+		slider_conteiner.addEventListener('touchend',function(event){eventUp(event,50);});
 		var eventUp=function(event,pxLeaght){
 			if(slide_click){
 				//console.log('no');
@@ -479,5 +497,6 @@ function initBurlakovSlider(burlakov_sc){
 				}
 			}
 		};
+		resizeHeightFun();
 	};
 }
